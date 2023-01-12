@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  web:
+    build: ./src
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      caddy:
+        condition: service_started
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src/:/usr/src/app/
+    environment:
+      - DATABASE_URL=postgresql://onboarding:onboarding@db/onboarding_dev
+  db:
+    image: postgres:15.1-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=onboarding
+      - POSTGRES_PASSWORD=onboarding
+      - POSTGRES_DB=onboarding_dev
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+  caddy:
+    image: caddy:2.6.2-alpine
+    ports:
+      - '80:80'
+      - '443:443'
+      - '8000:8000'
+      - '9000:9000'
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+  pg_admin:
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - GUNICORN_THREADS=1
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.admin
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    image: dpage/pgadmin4:6.15
+    ports:
+      - '4000:80'
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

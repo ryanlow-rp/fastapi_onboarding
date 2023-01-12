@@ -1,0 +1,9 @@
+localhost:8000 {
+	handle_path /api/v1/* {
+		reverse_proxy onboarding-web-1:8000
+	}
+}
+
+localhost:4000 {
+	reverse_proxy pg_admin:80
+}
