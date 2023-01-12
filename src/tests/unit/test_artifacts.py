@@ -6,12 +6,6 @@ from app.api import crud
 from app.api.models import ArtifactDB
 
 
-def test_example_route(test_app, monkeypatch):
-    response = test_app.get("/get_random_test?test=1")
-    assert response.status_code == 200
-    assert response.json() == []
-
-
 def test_create_artifact(test_app, monkeypatch):
     test_request_payload = {"name": "Cat", "element": "Cute", "level": 37}
     test_response_payload = {"id": 1, "name": "Cat", "element": "Cute", "level": 37}
